@@ -14,73 +14,12 @@ from components.napoleon2html import napoleon_to_html
 
 from plugins.sources import pretty_dump  # TODO: replace with bottle-rest
 
-# source plugins
-import plugins.sources.lastfm
-import plugins.sources.hysteria
-import plugins.sources.shaddack
-
-# notificators plugins
-import plugins.notificators.sms
-
-# system plugins
-import plugins.smtp
-import plugins.ticker
-
 
 # Variables ===================================================================
-INDEX_TEMPLATE = """
-<HTML>
-<head>
-    <title>API index</title>
-    <link rel="stylesheet" type="text/css" href="static/style.css">
-</head>
-
-<body>
-<h1>API list</h1>
-
-<p>
-Note, that you can also query this URL using
-<acronym title='curl -i -H "Accept: application/json" localhost:8888'>
-    <code>Accept: application/json</code>
-</acronym> header and you will get nested dictionaries.
-</p>
-
-$tables
-
-</body>
-</HTML>
-"""
-
-TABLE_TEMPLATE = """
-<table class="api_table">
-    <tr>
-        <th colspan="2" class="api_name">
-            <h2><a href="$name">$name</a></h2>
-        </th>
-    </tr>
-    <tr>
-        <td colspan="2" class="api_description">$description</td>
-    </tr>
-$rows
-</table>
-"""
-
-ROW_TEMPLATE = """
-    <tr style="border-top: 1px solid black;">
-        <td class="request_type">$http_type</td>
-        <td class="method_name">
-            <b><a href="$name">$name</a></b> $args
-        </td>
-    </tr>
-$method_description
-"""
-
-DESCR_TEMPLATE = """
-    <tr>
-        <td class="blank_td">&rarr;</td>
-        <td class="method_description">$method_description</pre></td>
-    </tr>
-"""
+INDEX_TEMPLATE = open("static/templates/index.html").read()
+TABLE_TEMPLATE = open("static/templates/table.html").read()
+ROW_TEMPLATE = open("static/templates/row.html").read()
+DESCR_TEMPLATE = open("static/templates/descr.html").read()
 
 
 # Functions & objects =========================================================
