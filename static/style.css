@@ -1,0 +1,84 @@
+body {
+    display: block;
+    margin: 0 auto;
+    width: 800px;
+    margin-top: 2em;
+}
+
+.api_table {
+    border-collapse: collapse;
+    border: 1px solid black;
+    border-bottom: 2px solid black;
+    border-right: 2px solid black;
+}
+
+.api_table > tr {
+    /*border-bottom: 1px solid gray;*/
+}
+
+.api_table td {
+    padding: 5px;
+}
+
+h2 {
+    margin: 2px;
+}
+
+a {
+    text-decoration: none;
+}
+a {
+    color: black;
+}
+a:visited {
+    color: #454B57;
+}
+a:hover {
+    color: silver;
+}
+
+.api_table {
+    # border: 1px solid black;
+    min-width: 790px;
+    margin-bottom: 1em;
+}
+
+.api_name {
+}
+
+.api_description {
+}
+
+.request_type {
+    min-width: 3em;
+}
+
+.method_description {
+}
+
+.blank_td {
+    text-align: center;
+}
+
+.param {
+    font-style: italic;
+    color: #003399;
+}
+
+.method_name {
+    width: 100%;
+    border-bottom: 1px solid #002400;
+}
+
+.docutils.field-list {
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.field-body {
+    border-top: 20px solid white;
+    padding: 0;
+    margin: 0;
+}
+
