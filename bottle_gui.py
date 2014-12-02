@@ -4,25 +4,24 @@
 # Interpreter version: python 2.7
 #
 # Imports =====================================================================
+import json
 import os.path
 from string import Template
 
 import bottle
-from bottle import route, run, static_file, request
+from bottle import route, run, static_file, request, response
 import inspect
 
 from components.napoleon2html import napoleon_to_html
 
-from plugins.sources import pretty_dump  # TODO: replace with bottle-rest
-
 
 # Variables ===================================================================
 def read_template(template_name):
-    template_path = os.path.join([
-        __file__,
+    template_path = os.path.join(
+        os.path.dirname(__file__),
         "static/templates/",
         template_name
-    ])
+    )
     with open(template_path) as f:
         return f.read()
 
@@ -290,8 +289,12 @@ def root():
 
     accept = request.headers.get("Accept", "")
     if "json" in request.content_type.lower() or "json" in accept.lower():
-        print content
-        return pretty_dump(to_json(content))
+        response.content_type = "application/json; charset=utf-8"
+        return json.dumps(
+            to_json(content),
+            indent=4,
+            separators=(',', ': ')
+        )
 
     return to_html(content)
 
