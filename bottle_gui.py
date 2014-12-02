@@ -4,6 +4,7 @@
 # Interpreter version: python 2.7
 #
 # Imports =====================================================================
+import os.path
 from string import Template
 
 import bottle
@@ -16,18 +17,29 @@ from plugins.sources import pretty_dump  # TODO: replace with bottle-rest
 
 
 # Variables ===================================================================
-INDEX_TEMPLATE = open("static/templates/index.html").read()
-TABLE_TEMPLATE = open("static/templates/table.html").read()
-ROW_TEMPLATE = open("static/templates/row.html").read()
-DESCR_TEMPLATE = open("static/templates/descr.html").read()
+def read_template(template_name):
+    template_path = os.path.join([
+        __file__,
+        "static/templates/",
+        template_name
+    ])
+    with open(template_path) as f:
+        return f.read()
 
 
-# Functions & objects =========================================================
+# load all necessary templates
+INDEX_TEMPLATE = read_template("index.html")
+TABLE_TEMPLATE = read_template("table.html")
+ROW_TEMPLATE   = read_template("row.html")
+DESCR_TEMPLATE = read_template("descr.html")
+
+
+# Functions & Classes =========================================================
 def list_routes():
     """
     Get list of routes defined in bottle.py.
 
-    Each record contains infomations about ``type`` (get/post/whatever),
+    Each record contains informations about ``type`` (get/post/whatever),
     ``route`` ("/"), ``docstring`` for function, which will be called and
     ``mdocstring`` (module docstring). Information about parameters is added
     to the ``args`` property.
