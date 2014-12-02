@@ -1,0 +1,4 @@
+src/bottle_gui.egg-info/*
+docs/_build/*
+dist/*
+*.pyc
