@@ -316,6 +316,21 @@ def main():
     )
 
 
+@route("/something")
+def test(something, something_else):
+    """
+    Here is docstring and so on.
+    """
+    pass
+
+@route("/something/else")
+def test2(something, something_else):
+    """
+    Another docstring
+    """
+    pass
+
+
 # Main program ================================================================
 if __name__ == '__main__':
     main()
