@@ -50,6 +50,28 @@ class RouteInfo(object):
     def __str__(self):  # TODO: remove
         return self.method + " " + self.path
 
+    def to_html(self):
+        descr = ""
+        if self.docstring:
+            docstring = self.docstring.strip() or ""
+
+            descr = Template(DESCR_TEMPLATE).substitute(
+                method_description=napoleon_to_html(docstring)
+            )
+
+        args = self.args if self.args else ""
+        if args:
+            args_style = "&#8672; &lt;<span class='param'>"
+            args = args_style + "</span>, <span class='param'>".join(args)
+            args += "</span>&gt;"
+
+        return Template(ROW_TEMPLATE).substitute(
+            name=self.path,
+            args=args,
+            http_type=self.method,
+            method_description=descr
+        )
+
 
 class RouteGroup(object):
     def __init__(self, routes=[]):
