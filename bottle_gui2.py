@@ -34,12 +34,6 @@ DESCR_TEMPLATE = read_template("descr.html")
 
 
 # Classes =====================================================================
-# class PathID(object):
-#     def __init__(self, method, path):
-#         self.method = method
-#         self.path = path
-
-
 class PathInfo(object):
     def __init__(self, method, path, args, docstring, mdocstring, module_name):
         self.method = method
