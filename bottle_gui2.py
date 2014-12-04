@@ -34,7 +34,7 @@ DESCR_TEMPLATE = read_template("descr.html")
 
 
 # Classes =====================================================================
-class PathInfo(object):
+class RouteInfo(object):
     def __init__(self, method, path, args, docstring, mdocstring, module_name):
         self.method = method
         self.path = path
@@ -51,7 +51,7 @@ class PathInfo(object):
         return self.method + " " + self.path
 
 
-class PathGroup(object):
+class RouteGroup(object):
     def __init__(self, routes=[]):
         self.routes = routes
 
@@ -63,12 +63,15 @@ class PathGroup(object):
 
 
 # Functions ===================================================================
-def list_routes():  # TODO: rename
+def list_routes():
     """
-    Get dict
+    Get list of :class:`RouteInfo` objects from bottle introspection.
+
+    Returns:
+        list: :class:`RouteInfo` objects.
     """
     return map(
-        lambda r: PathInfo(
+        lambda r: RouteInfo(
             method=r.method,
             path=r.rule.split("<")[0],
             args=r.get_callback_args(),
@@ -83,6 +86,16 @@ def list_routes():  # TODO: rename
 
 
 def group_routes(ungrouped_routes):
+    """
+    Group list of :class:`RouteInfo` objects in `ungrouped_routes` by their
+    :attr:`RouteInfo.path` properties.
+
+    Args:
+        ungrouped_routes (list): List of :class:`RouteInfo` objects.
+
+    Returns:
+        list: :class:`RouteGroup` objects.
+    """
     groups = []
 
     # go from longest routes to shorter
@@ -96,7 +109,7 @@ def group_routes(ungrouped_routes):
     root_paths = filter(lambda x: x.path == "/", routes)
     if root_paths:
         groups.append(
-            PathGroup(root_paths)
+            RouteGroup(root_paths)
         )
 
         # remove / routes if present
@@ -119,14 +132,14 @@ def group_routes(ungrouped_routes):
             continue
 
         groups.append(
-            PathGroup(same_group)
+            RouteGroup(same_group)
         )
         processed.update(same_group)
 
     # don't forget to uprocessed routes
     for route in set(routes) - processed:
         groups.append(
-            PathGroup([route])
+            RouteGroup([route])
         )
 
     return groups
