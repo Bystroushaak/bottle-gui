@@ -98,7 +98,7 @@ class RouteGroup(object):
 
     def get_docstring(self):
         if self.routes:
-            return self.routes[0].mdocstring
+            return self.routes[0].mdocstring or ""
 
         return ""
 
