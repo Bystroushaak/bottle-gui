@@ -59,7 +59,7 @@ class RouteInfo(object):
                 method_description=napoleon_to_html(docstring)
             )
 
-        args = self.args if self.args else ""
+        args = self.args or ""
         if args:
             args_style = "&#8672; &lt;<span class='param'>"
             args = args_style + "</span>, <span class='param'>".join(args)
@@ -82,6 +82,34 @@ class RouteGroup(object):
 
     def __str__(self):  # TODO: remove
         return "group: " + " ".join(map(lambda x: str(x), self.routes)) + "\n"
+
+    def get_path(self):
+        if len(self.routes) == 1:
+            return self.routes[0].path
+
+        # get longest path
+        route_paths = map(lambda x: x.path, self.routes)
+        longest_path = max(route_paths)
+
+        if longest_path.endswith("/"):
+            return longest_path
+
+        return os.path.dirname(longest_path)
+
+    def get_docstring(self):
+        if self.routes:
+            return self.routes[0].mdocstring
+
+        return ""
+
+    def to_html(self):
+        return Template(TABLE_TEMPLATE).substitute(
+            name=self.get_path(),
+            description=self.get_docstring(),
+            rows="\n".join(
+                map(lambda x: x.to_html(), self.routes)
+            )
+        )
 
 
 # Functions ===================================================================
@@ -150,12 +178,10 @@ def group_routes(ungrouped_routes):
         )
 
         # skip routes without groups for later processing
-        if len(same_group) <= 1:  # always at least one route
+        if len(same_group) <= 1:  # contains always actual route, so <= 1
             continue
 
-        groups.append(
-            RouteGroup(same_group)
-        )
+        groups.append(RouteGroup(same_group))
         processed.update(same_group)
 
     # don't forget to uprocessed routes
@@ -167,7 +193,12 @@ def group_routes(ungrouped_routes):
     return groups
 
 
-
+def to_html(grouped_list):
+    return Template(INDEX_TEMPLATE).substitute(
+        tables="\n".join(
+            map(lambda x: x.to_html(), grouped_list)
+        )
+    )
 
 
 
@@ -178,14 +209,14 @@ def root():
     """Handle requests to root of the project."""
     content = group_routes(list_routes())
 
-    accept = request.headers.get("Accept", "")
-    if "json" in request.content_type.lower() or "json" in accept.lower():
-        response.content_type = "application/json; charset=utf-8"
-        return json.dumps(
-            to_json(content),
-            indent=4,
-            separators=(',', ': ')
-        )
+    # accept = request.headers.get("Accept", "")
+    # if "json" in request.content_type.lower() or "json" in accept.lower():
+    #     response.content_type = "application/json; charset=utf-8"
+    #     return json.dumps(
+    #         to_json(content),
+    #         indent=4,
+    #         separators=(',', ': ')
+    #     )
 
     return to_html(content)
 
@@ -231,9 +262,4 @@ def test2(something, something_else):
 
 # Main program ================================================================
 if __name__ == '__main__':
-    # main()
-    print "routes"
-    print map(lambda x: str(x), list_routes())
-    print
-    print "grouped"
-    print "".join(map(lambda x: str(x), group_routes(list_routes())))
+    main()
