@@ -47,11 +47,10 @@ class RouteInfo(object):
         if s:
             return s.replace("<", "&lt;").replace(">", "&gt;")
 
-    def __str__(self):  # TODO: remove
-        return self.method + " " + self.path
-
     def to_html(self):
         descr = ""
+
+        # process docstring
         if self.docstring:
             docstring = self.docstring.strip() or ""
 
@@ -59,6 +58,7 @@ class RouteInfo(object):
                 method_description=napoleon_to_html(docstring)
             )
 
+        # wrap arguments to the html
         args = self.args or ""
         if args:
             args_style = "&#8672; &lt;<span class='param'>"
@@ -72,6 +72,19 @@ class RouteInfo(object):
             method_description=descr
         )
 
+    def to_dict(self):
+        return {
+            "method": self.method,
+            "path": self.path,
+            "args": self.args,
+            "docstring": self.docstring,
+            "mdocstring": self.mdocstring,
+            "module_name": self.module_name,
+        }
+
+    def __str__(self):  # TODO: remove
+        return self.method + " " + self.path
+
 
 class RouteGroup(object):
     def __init__(self, routes=[]):
@@ -79,9 +92,6 @@ class RouteGroup(object):
 
     def add_route(self, route):
         self.routes.append(route)
-
-    def __str__(self):  # TODO: remove
-        return "group: " + " ".join(map(lambda x: str(x), self.routes)) + "\n"
 
     def get_path(self):
         if len(self.routes) == 1:
@@ -110,6 +120,14 @@ class RouteGroup(object):
                 map(lambda x: x.to_html(), self.routes)
             )
         )
+
+    def to_dict(self):
+        return {
+            self.get_path(): map(lambda x: x.to_dict(), self.routes)
+        }
+
+    def __str__(self):  # TODO: remove
+        return "group: " + " ".join(map(lambda x: str(x), self.routes)) + "\n"
 
 
 # Functions ===================================================================
