@@ -16,12 +16,25 @@ from components.napoleon2html import napoleon_to_html
 
 
 # Variables ===================================================================
+TEMPLATE_PATH = "static/templates/"  #: Path to the template directory.
+
+
 def read_template(template_name):
+    """
+    Read content of the template file.
+
+    Args:
+        template_name (str): Name of the file.
+
+    Returns:
+        str: Content of `template_name` from :attr:`TEMPLATE_PATH` directory.
+    """
     template_path = os.path.join(
         os.path.dirname(__file__),
-        "static/templates/",
+        TEMPLATE_PATH,
         template_name
     )
+
     with open(template_path) as f:
         return f.read()
 
@@ -292,32 +305,58 @@ def group_routes(ungrouped_routes):
     return groups
 
 
-def to_html(grouped_list):
+def to_html(grouped_routes):
+    """
+    Convert list of :class:`RouteGroup` objects in `group_routes` to HTML.
+
+    Args:
+        grouped_routes (list): Llist of :class:`RouteGroup` objects.
+
+    Returns:
+        str: HTML page with routes.
+    """
     return Template(INDEX_TEMPLATE).substitute(
         tables="\n".join(
-            map(lambda x: x.to_html(), grouped_list)
+            map(lambda x: x.to_html(), grouped_routes)
         )
     )
 
 
+def to_json(grouped_routes):
+    """
+    Convert list of :class:`RouteGroup` objects in `grouped_routes` to JSON.
 
+    Args:
+        grouped_routes (list): Llist of :class:`RouteGroup` objects.
+
+    Returns:
+        str: JSON representation of `grouped_routes`.
+    """
+    routes = map(
+        lambda x: x.to_dict(),
+        grouped_routes
+    )
+
+    return json.dumps(
+        routes,
+        indent=4,
+        separators=(',', ': ')
+    )
 
 
 @route('/')
-def root():
-    """Handle requests to root of the project."""
-    content = group_routes(list_routes())
+def root():  # TODO: add docstrings, make dynamic
+    """
+    Handle requests to root of the project.
+    """
+    grouped_routes = group_routes(list_routes())
 
-    # accept = request.headers.get("Accept", "")
-    # if "json" in request.content_type.lower() or "json" in accept.lower():
-    #     response.content_type = "application/json; charset=utf-8"
-    #     return json.dumps(
-    #         to_json(content),
-    #         indent=4,
-    #         separators=(',', ': ')
-    #     )
+    accept = request.headers.get("Accept", "")
+    if "json" in request.content_type.lower() or "json" in accept.lower():
+        response.content_type = "application/json; charset=utf-8"
+        return to_json(grouped_routes)
 
-    return to_html(content)
+    return to_html(grouped_routes)
 
 
 @route("/static/<fn>")
