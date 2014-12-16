@@ -27,27 +27,67 @@ def read_template(template_name):
 
 
 # load all necessary templates
-INDEX_TEMPLATE = read_template("index.html")
-TABLE_TEMPLATE = read_template("table.html")
-ROW_TEMPLATE   = read_template("row.html")
-DESCR_TEMPLATE = read_template("descr.html")
+INDEX_TEMPLATE = read_template("index.html")  #: static/templates/index.html
+TABLE_TEMPLATE = read_template("table.html")  #: static/templates/table.html
+ROW_TEMPLATE   = read_template("row.html")  #: static/templates/row.html
+DESCR_TEMPLATE = read_template("descr.html")  #: static/templates/descr.html
 
 
 # Classes =====================================================================
 class RouteInfo(object):
+    """
+    Container for informations about `route`.
+
+    Attributes:
+        method (fn reference): Reference to undecorated function.
+        path (str): Path to the function in bottle.
+        args (list): Args of the function.
+        docstring (str): Docstring for the function.
+        mdocstring (str): Docstring for the module where the function is.
+        module_name (str): Name of the module where the function is.
+    """
     def __init__(self, method, path, args, docstring, mdocstring, module_name):
+        """
+        Attributes
+            method (fn reference): see Attributes section for details.
+            path (str): see Attributes section for details.
+            args (list): see Attributes section for details.
+            docstring (str): see Attributes section for details.
+            mdocstring (str): see Attributes section for details.
+            module_name (str): see Attributes section for details.
+        """
         self.method = method
         self.path = path
         self.args = args
-        self.docstring = self.sanitize(docstring)
-        self.mdocstring = self.sanitize(mdocstring)
+        self.docstring = self._sanitize(docstring)
+        self.mdocstring = self._sanitize(mdocstring)
         self.module_name = module_name
 
-    def sanitize(self, s):
+    def _sanitize(self, s):
+        """
+        Replace ``<`` and ``>`` with corresponding HTML entities.
+
+        Args:
+            s (str): Input string.
+
+        Returns:
+            str: String with entities, or `s` ``if not s``.
+        """
         if s:
             return s.replace("<", "&lt;").replace(">", "&gt;")
 
+        return s
+
     def to_html(self):
+        """
+        Convert informations about this route to HTML.
+
+        Note:
+            :attr:`DESCR_TEMPLATE` and :attr:`ROW_TEMPLATE` is used.
+
+        Returns:
+            str: HTML representation of the `route`.
+        """
         descr = ""
 
         # process docstring
@@ -73,6 +113,14 @@ class RouteInfo(object):
         )
 
     def to_dict(self):
+        """
+        Return dictionary representation of the class. This method is used for
+        JSON output.
+
+        Returns:
+            dict: Dictionary following keys: ``method``, ``path``, ``args``, \
+                  ``docstring``, ``mdocstring``, ``module_name``.
+        """
         return {
             "method": self.method,
             "path": self.path,
@@ -87,13 +135,22 @@ class RouteInfo(object):
 
 
 class RouteGroup(object):
+    """
+    This object is used to group :class:`RouteInfo` objects.
+
+    Args:
+        routes (list, default []): List with :class:`RouteInfo` objects.
+    """
     def __init__(self, routes=[]):
         self.routes = routes
 
-    def add_route(self, route):
-        self.routes.append(route)
+    def get_path(self):  # TODO: shortest path
+        """
+        Return `path` for this group.
 
-    def get_path(self):
+        Returns:
+            str: Path.
+        """
         if len(self.routes) == 1:
             return self.routes[0].path
 
@@ -107,12 +164,27 @@ class RouteGroup(object):
         return os.path.dirname(longest_path)
 
     def get_docstring(self):
+        """
+        Return 'module' docstring.
+
+        Returns:
+            str: Module docstring, if defined, or blank string.
+        """
         if self.routes:
             return self.routes[0].mdocstring or ""
 
         return ""
 
     def to_html(self):
+        """
+        Convert group and all contained paths to HTML.
+
+        Note:
+            :attr:`TABLE_TEMPLATE` is used.
+
+        Returns:
+            str: HTML.
+        """
         return Template(TABLE_TEMPLATE).substitute(
             name=self.get_path(),
             description=self.get_docstring(),
@@ -122,6 +194,15 @@ class RouteGroup(object):
         )
 
     def to_dict(self):
+        """
+        Convert group to dict. This method is used for JSON output.
+
+        Returns:
+            dict: {path: [routes]}
+
+        See Also:
+            RouteInfo.to_dict
+        """
         return {
             self.get_path(): map(lambda x: x.to_dict(), self.routes)
         }
