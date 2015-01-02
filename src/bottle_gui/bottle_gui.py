@@ -378,4 +378,7 @@ def get_static(fn):
     """
     Serve static files.
     """
-    return static_file(fn, root='static/')
+    return static_file(
+        fn,
+        root=os.path.join(os.path.dirname(__file__), 'static/')
+    )
