@@ -4,6 +4,9 @@
 # Interpreter version: python 2.7
 #
 # Imports =====================================================================
+"""
+Hist module level docstring.
+"""
 from bottle import route
 
 
@@ -11,7 +14,7 @@ from bottle import route
 @route("/sources/hist")
 def hist(something, something_else):
     """
-    Here is docstring and so on.
+    Here is hist docstring and so on.
     """
     pass
 
@@ -19,6 +22,6 @@ def hist(something, something_else):
 @route("/sources/hist/xe")
 def hist_xe(something, something_else):
     """
-    Here is docstring and so on.
+    Here is hist/xe docstring and so on.
     """
     pass

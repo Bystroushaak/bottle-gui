@@ -379,25 +379,3 @@ def get_static(fn):
     Serve static files.
     """
     return static_file(fn, root='static/')
-
-
-# TODO: remove
-def main():
-    run(
-        server="paste",
-        host="127.0.0.1",
-        port=8888,
-        debug=True,
-        reloader=True,
-        # ssl_pem="static/host.pem"
-    )
-
-
-
-
-
-
-
-# Main program ================================================================
-if __name__ == '__main__':
-    main()
