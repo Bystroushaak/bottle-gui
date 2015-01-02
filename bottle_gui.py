@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-# 
+#
 # Interpreter version: python 2.7
 #
 # Imports =====================================================================
@@ -16,321 +16,366 @@ from components.napoleon2html import napoleon_to_html
 
 
 # Variables ===================================================================
+TEMPLATE_PATH = "static/templates/"  #: Path to the template directory.
+
+
 def read_template(template_name):
+    """
+    Read content of the template file.
+
+    Args:
+        template_name (str): Name of the file.
+
+    Returns:
+        str: Content of `template_name` from :attr:`TEMPLATE_PATH` directory.
+    """
     template_path = os.path.join(
         os.path.dirname(__file__),
-        "static/templates/",
+        TEMPLATE_PATH,
         template_name
     )
+
     with open(template_path) as f:
         return f.read()
 
 
 # load all necessary templates
-INDEX_TEMPLATE = read_template("index.html")
-TABLE_TEMPLATE = read_template("table.html")
-ROW_TEMPLATE   = read_template("row.html")
-DESCR_TEMPLATE = read_template("descr.html")
+INDEX_TEMPLATE = read_template("index.html")  #: static/templates/index.html
+TABLE_TEMPLATE = read_template("table.html")  #: static/templates/table.html
+ROW_TEMPLATE   = read_template("row.html")  #: static/templates/row.html
+DESCR_TEMPLATE = read_template("descr.html")  #: static/templates/descr.html
 
 
-# Functions & Classes =========================================================
-def list_routes():
+# Classes =====================================================================
+class RouteInfo(object):
     """
-    Get list of routes defined in bottle.py.
+    Container for informations about `route`.
 
-    Each record contains informations about ``type`` (get/post/whatever),
-    ``route`` ("/"), ``docstring`` for function, which will be called and
-    ``mdocstring`` (module docstring). Information about parameters is added
-    to the ``args`` property.
-
-    Returns:
-        dict: {
-            "route": {
-                "http_type": "",
-                "docstring": "",
-                "mdocstring": "",
-                "args": []
-            },
-            ..
-        }
+    Attributes:
+        method (fn reference): Reference to undecorated function.
+        path (str): Path to the function in bottle.
+        args (list): Args of the function.
+        docstring (str): Docstring for the function.
+        mdocstring (str): Docstring for the module where the function is.
+        module_name (str): Name of the module where the function is.
     """
-    def sanitize(s):
+    def __init__(self, method, path, args, docstring, mdocstring, module_name):
+        """
+        Attributes
+            method (fn reference): see Attributes section for details.
+            path (str): see Attributes section for details.
+            args (list): see Attributes section for details.
+            docstring (str): see Attributes section for details.
+            mdocstring (str): see Attributes section for details.
+            module_name (str): see Attributes section for details.
+        """
+        self.method = method
+        self.path = path
+        self.args = args
+        self.docstring = self._sanitize(docstring)
+        self.mdocstring = self._sanitize(mdocstring)
+        self.module_name = module_name
+
+    def _sanitize(self, s):
+        """
+        Replace ``<`` and ``>`` with corresponding HTML entities.
+
+        Args:
+            s (str): Input string.
+
+        Returns:
+            str: String with entities, or `s` ``if not s``.
+        """
         if s:
             return s.replace("<", "&lt;").replace(">", "&gt;")
 
-    return dict(map(
-        lambda r: (
-            (r.method, r.rule.split("<")[0]),
-            {
-                "http_type": r.method,
-                "docstring": sanitize(
-                    inspect.getdoc(r.get_undecorated_callback()) or ""
-                ),
-                "mdocstring": sanitize(inspect.getdoc(
-                    inspect.getmodule(r.get_undecorated_callback())
-                )),
-                "args": r.get_callback_args()
-            }
-        ),
-        bottle.default_app().routes
-    ))
+        return s
 
+    def to_html(self):
+        """
+        Convert informations about this route to HTML.
 
-def group_routes(route_data):
-    """
-    Move routes to groups, remove mdocstrings from each route and put it only
-    to the module group.
+        Note:
+            :attr:`DESCR_TEMPLATE` and :attr:`ROW_TEMPLATE` is used.
 
-    Args:
-        route_data (list): returned from list_routes()
+        Returns:
+            str: HTML representation of the `route`.
+        """
+        descr = ""
 
-    Returns:
-        dict: {
-            ("http_type", "path"): {
-                "docstring": "Module docstring.",
-                "routes": {
-                    "/path/": {
-                        "http_type": "GET/POST/PUT/..",
-                        "docstring": "Method docstring.",
-                        "args": [names, of, arguments]
-                    },
+        # process docstring
+        if self.docstring:
+            docstring = self.docstring.strip() or ""
 
-                    "/path/more.html": {
-                        ...
-                    }
-                }
-            },
-            ...
-        }
-    """
-    def remove_key(d, key):
-        if key in d:
-            del d[key]
-
-        return d
-
-    # remove banned elements (internal routes for application)
-    banned_paths = [("GET", "/"), ("GET", "/static/")]
-    for path in banned_paths:
-        if path in route_data:
-            del route_data[path]
-
-    # go from longest routes to shorter
-    routes = sorted(route_data.keys(), key=lambda x: len(x), reverse=True)
-    process_later = routes[:]
-
-    grouped = {}
-    for method, path in routes:
-        # find all routes, which starts with `route`
-        same_group = filter(
-            lambda (x_method, x_path): x_path.startswith(path),
-            routes
-        )
-
-        if len(same_group) <= 1:
-            continue
-
-        # join "route" and "route/" into one path
-        if path.endswith("/") and (method, path[:-1]) in routes:
-            continue
-
-        # group all routes from `same_group` to one dictionary, remove module
-        # docstring from subroutes and move it to the "package" level
-        grouped[path] = {
-            "docstring": route_data[(method, path)].get("mdocstring", ""),
-            "routes": dict(map(
-                lambda x: (x, remove_key(route_data[x], "mdocstring")),
-                same_group
-            ))
-        }
-
-        # single routes with no subroutes
-        map(
-            lambda x:
-                process_later.remove(x) if x in process_later else "",
-            same_group
-        )
-
-    # same thing as above, but for single routes without subroutes
-    for route in process_later:
-        grouped[route[1]] = {
-            "docstring": route_data[route]["mdocstring"],
-            "routes": {route: remove_key(route_data[route], "mdocstring")}
-        }
-
-    return grouped
-
-
-def to_html(grouped_data):
-    """
-    Convert `grouped_data` to HTML, for human viewers (I've heard, that they
-    don't prefer JSON for some strange reason).
-
-    Args:
-        grouped_data (dict): output from func:`group_data`.
-
-    Returns:
-        str: HTML made from templates (see INDEX_TEMPLATE, TABLE_TEMPLATE,
-             ROW_TEMPLATE and DESCR_TEMPLATE) and data.
-    """
-    output = ""
-    for route, data in sorted(grouped_data.iteritems()):
-        rows = ""
-        for function_route, group_data in sorted(data["routes"].iteritems()):
-            descr = ""
-            if group_data["docstring"]:
-                docstring = group_data["docstring"].strip() or ""
-
-                descr = Template(DESCR_TEMPLATE).substitute(
-                    method_description=napoleon_to_html(docstring)
-                )
-
-            args = group_data["args"] if group_data["args"] else ""
-            if args:
-                args_style = "&#8672; &lt;<span class='param'>"
-                args = args_style + "</span>, <span class='param'>".join(args)
-                args += "</span>&gt;"
-
-            rows += Template(ROW_TEMPLATE).substitute(
-                name=function_route[1],
-                args=args,
-                http_type=group_data["http_type"],
-                method_description=descr
+            descr = Template(DESCR_TEMPLATE).substitute(
+                method_description=napoleon_to_html(docstring)
             )
 
-        output += Template(TABLE_TEMPLATE).substitute(
-            name=route,
-            description=data["docstring"] or "",
-            rows=rows
+        # wrap arguments to the html
+        args = self.args or ""
+        if args:
+            args_style = "&#8672; &lt;<span class='param'>"
+            args = args_style + "</span>, <span class='param'>".join(args)
+            args += "</span>&gt;"
+
+        return Template(ROW_TEMPLATE).substitute(
+            name=self.path,
+            args=args,
+            http_type=self.method,
+            method_description=descr
         )
 
-    return Template(INDEX_TEMPLATE).substitute(tables=output)
+    def to_dict(self):
+        """
+        Return dictionary representation of the class. This method is used for
+        JSON output.
+
+        Returns:
+            dict: Dictionary following keys: ``method``, ``path``, ``args``, \
+                  ``docstring``, ``mdocstring``, ``module_name``.
+        """
+        return {
+            "method": self.method,
+            "path": self.path,
+            "args": self.args,
+            "docstring": self.docstring,
+            "mdocstring": self.mdocstring,
+            "module_name": self.module_name,
+        }
+
+    def __str__(self):  # TODO: remove
+        return self.method + " " + self.path
 
 
-def to_json(grouped_data):
+class RouteGroup(object):
     """
-    Convert data to json-friendly format.
+    This object is used to group :class:`RouteInfo` objects.
 
     Args:
-        grouped_data (dict): output from func:`group_data`.
-
-    Example of the input::
-
-        {
-            '/sources/shaddack': {
-                'routes': {
-                    ('GET', '/sources/shaddack/_unittest'): {
-                        'args': [],
-                        'docstring': None,
-                        'http_type': 'GET'
-                    },
-                    ('GET', '/sources/shaddack'): {
-                        'args': [],
-                        'docstring': "Returns:\n    list: of Shaddack's projects.\n\nSee /shaddack/_schema for description of datastructures.",
-                        'http_type': 'GET'
-                    },
-                    ('GET', '/sources/shaddack/_schema'): {
-                        'args': [],
-                        'docstring': None,
-                        'http_type': 'GET'
-                    }
-                },
-                'docstring': "Shaddack API for retreiving links to Shaddack's projects published at his site\n(see BASE_URL)."
-            },
-        }
-
-    Example of the output::
-
-        {
-            "/sources/shaddack": {
-                "docstring": "Shaddack API for retreiving links to Shaddack's projects published at his site\n(see BASE_URL).",
-                "GET": {
-                    "/sources/shaddack/_schema": {
-                        "args": [],
-                        "docstring": null,
-                        "http_type": "GET"
-                    },
-                    "/sources/shaddack": {
-                        "args": [],
-                        "docstring": "Returns:\n    list: of Shaddack's projects.\n\nSee /shaddack/_schema for description of datastructures.",
-                        "http_type": "GET"
-                    },
-                    "/sources/shaddack/_unittest": {
-                        "args": [],
-                        "docstring": null,
-                        "http_type": "GET"
-                    }
-                }
-            },
-        }
-
-    Returns:
-        dict: Dict with simple keys.
+        routes (list, default []): List with :class:`RouteInfo` objects.
     """
-    output = {}
+    def __init__(self, routes=[]):
+        self.routes = routes
 
-    for route, data in sorted(grouped_data.iteritems()):
-        output[route] = {}
-        output[route]["docstring"] = data["docstring"]
+    def get_path(self):  # TODO: shortest path
+        """
+        Return `path` for this group.
 
-        for sub_route, sub_data in sorted(data["routes"].iteritems()):
-            if sub_route[0] not in output[route]:
-                output[route][sub_route[0]] = {}
+        Returns:
+            str: Path.
+        """
+        if len(self.routes) == 1:
+            return self.routes[0].path
 
-            output[route][sub_route[0]][sub_route[1]] = sub_data
+        # get longest path
+        route_paths = map(lambda x: x.path, self.routes)
+        longest_path = max(route_paths)
 
-    return output
+        if longest_path.endswith("/"):
+            return longest_path
 
+        return os.path.dirname(longest_path)
 
-@route('/')
-def root():
-    """Handle requests to root of the project."""
-    content = group_routes(list_routes())
+    def get_docstring(self):
+        """
+        Return 'module' docstring.
 
-    accept = request.headers.get("Accept", "")
-    if "json" in request.content_type.lower() or "json" in accept.lower():
-        response.content_type = "application/json; charset=utf-8"
-        return json.dumps(
-            to_json(content),
-            indent=4,
-            separators=(',', ': ')
+        Returns:
+            str: Module docstring, if defined, or blank string.
+        """
+        if self.routes:
+            return self.routes[0].mdocstring or ""
+
+        return ""
+
+    def to_html(self):
+        """
+        Convert group and all contained paths to HTML.
+
+        Note:
+            :attr:`TABLE_TEMPLATE` is used.
+
+        Returns:
+            str: HTML.
+        """
+        return Template(TABLE_TEMPLATE).substitute(
+            name=self.get_path(),
+            description=self.get_docstring(),
+            rows="\n".join(
+                map(lambda x: x.to_html(), self.routes)
+            )
         )
 
-    return to_html(content)
+    def to_dict(self):
+        """
+        Convert group to dict. This method is used for JSON output.
+
+        Returns:
+            dict: {path: [routes]}
+
+        See Also:
+            RouteInfo.to_dict
+        """
+        return {
+            self.get_path(): map(lambda x: x.to_dict(), self.routes)
+        }
+
+    def __str__(self):  # TODO: remove
+        return "group: " + " ".join(map(lambda x: str(x), self.routes)) + "\n"
 
 
-@route("/static/<fn>")
-def get_static(fn):
-    return static_file(fn, root='static/')
+# Functions ===================================================================
+def list_routes():
+    """
+    Get list of :class:`RouteInfo` objects from bottle introspection.
 
-
-# TODO: remove
-def main():
-    run(
-        server="paste",
-        host="127.0.0.1",
-        port=8888,
-        debug=True,
-        reloader=True,
-        # ssl_pem="static/host.pem"
+    Returns:
+        list: :class:`RouteInfo` objects.
+    """
+    return map(
+        lambda r: RouteInfo(
+            method=r.method,
+            path=r.rule.split("<")[0],
+            args=r.get_callback_args(),
+            docstring=inspect.getdoc(r.get_undecorated_callback()) or "",
+            mdocstring=inspect.getdoc(
+                inspect.getmodule(r.get_undecorated_callback())
+            ),
+            module_name=r.get_undecorated_callback().__module__
+        ),
+        bottle.default_app().routes
     )
 
 
-@route("/something")
-def test(something, something_else):
+def group_routes(ungrouped_routes):
     """
-    Here is docstring and so on.
-    """
-    pass
+    Group list of :class:`RouteInfo` objects in `ungrouped_routes` by their
+    :attr:`RouteInfo.path` properties.
 
-@route("/something/else")
-def test2(something, something_else):
+    Args:
+        ungrouped_routes (list): List of :class:`RouteInfo` objects.
+
+    Returns:
+        list: :class:`RouteGroup` objects.
     """
-    Another docstring
-    """
-    pass
+    groups = []
+
+    # go from longest routes to shorter
+    routes = sorted(
+        ungrouped_routes,
+        key=lambda x: len(x.path),
+        reverse=True
+    )
+
+    # group and remove / routes - they would break grouping algorithm later
+    root_paths = filter(lambda x: x.path == "/", routes)
+    if root_paths:
+        groups.append(
+            RouteGroup(root_paths)
+        )
+
+        # remove / routes if present
+        map(lambda x: routes.pop(), root_paths)
+
+    processed = set()
+    for route in routes:
+        # skip already processed routes
+        if route in processed:
+            continue
+
+        # find all routes, which starts with `route`
+        same_group = filter(
+            lambda x: x.path.startswith(route.path),
+            routes
+        )
+
+        # skip routes without groups for later processing
+        if len(same_group) <= 1:  # contains always actual route, so <= 1
+            continue
+
+        groups.append(RouteGroup(same_group))
+        processed.update(same_group)
+
+    # don't forget to uprocessed routes
+    for route in set(routes) - processed:
+        groups.append(
+            RouteGroup([route])
+        )
+
+    return groups
 
 
-# Main program ================================================================
-if __name__ == '__main__':
-    main()
+def to_html(grouped_routes):
+    """
+    Convert list of :class:`RouteGroup` objects in `group_routes` to HTML.
+
+    Args:
+        grouped_routes (list): Llist of :class:`RouteGroup` objects.
+
+    Returns:
+        str: HTML page with routes.
+    """
+    return Template(INDEX_TEMPLATE).substitute(
+        tables="\n".join(
+            map(lambda x: x.to_html(), grouped_routes)
+        )
+    )
+
+
+def to_json(grouped_routes):
+    """
+    Convert list of :class:`RouteGroup` objects in `grouped_routes` to JSON.
+
+    Args:
+        grouped_routes (list): Llist of :class:`RouteGroup` objects.
+
+    Returns:
+        str: JSON representation of `grouped_routes`.
+    """
+    routes = map(
+        lambda x: x.to_dict(),
+        grouped_routes
+    )
+
+    return json.dumps(
+        routes,
+        indent=4,
+        separators=(',', ': ')
+    )
+
+
+def bottle_gui(path="/"):
+    """
+    Run `bootle-gui` at given `path`.
+
+    Args:
+        path (str, default "/"): Bottle path on which the application will be
+             available.
+
+    Returns:
+        fn reference: Function, which provides the `bottle-gui` functionality,\
+                      mapped to bottle `path`.
+    """
+    @route(path)
+    def root():
+        """
+        Handle requests to root of the project.
+        """
+        grouped_routes = group_routes(list_routes())
+
+        accept = request.headers.get("Accept", "")
+        if "json" in request.content_type.lower() or "json" in accept.lower():
+            response.content_type = "application/json; charset=utf-8"
+            return to_json(grouped_routes)
+
+        return to_html(grouped_routes)
+
+    return root
+
+
+@route("/bottle_gui_static/<fn>")
+def get_static(fn):
+    """
+    Serve static files.
+    """
+    return static_file(fn, root='static/')

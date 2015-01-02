@@ -18,7 +18,7 @@ from bottle import run
 import services
 
 sys.path.append('../')
-from bottle_gui2 import bottle_gui
+from bottle_gui import bottle_gui
 
 
 # Variables ==================================================================
@@ -94,7 +94,7 @@ def test_json_output():
                     u'docstring': u'Handle requests to root of the project.',
                     u'path': u'/',
                     u'mdocstring': None,
-                    u'module_name': u'bottle_gui2',
+                    u'module_name': u'bottle_gui',
                     u'method': u'GET'
                 }
             ]
@@ -126,7 +126,7 @@ def test_json_output():
                     u'docstring': u'Serve static files.',
                     u'path': u'/bottle_gui_static/',
                     u'mdocstring': None,
-                    u'module_name': u'bottle_gui2',
+                    u'module_name': u'bottle_gui',
                     u'method': u'GET'
                 }
             ]
