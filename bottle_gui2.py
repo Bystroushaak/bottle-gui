@@ -373,8 +373,11 @@ def bottle_gui(path="/"):
     return root
 
 
-@route("/static/<fn>")
+@route("/bottle_gui_static/<fn>")
 def get_static(fn):
+    """
+    Serve static files.
+    """
     return static_file(fn, root='static/')
 
 
