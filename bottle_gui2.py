@@ -344,19 +344,33 @@ def to_json(grouped_routes):
     )
 
 
-@route('/')
-def root():  # TODO: add docstrings, make dynamic
+def bottle_gui(path="/"):
     """
-    Handle requests to root of the project.
+    Run `bootle-gui` at given `path`.
+
+    Args:
+        path (str, default "/"): Bottle path on which the application will be
+             available.
+
+    Returns:
+        fn reference: Function, which provides the `bottle-gui` functionality,\
+                      mapped to bottle `path`.
     """
-    grouped_routes = group_routes(list_routes())
+    @route(path)
+    def root():
+        """
+        Handle requests to root of the project.
+        """
+        grouped_routes = group_routes(list_routes())
 
-    accept = request.headers.get("Accept", "")
-    if "json" in request.content_type.lower() or "json" in accept.lower():
-        response.content_type = "application/json; charset=utf-8"
-        return to_json(grouped_routes)
+        accept = request.headers.get("Accept", "")
+        if "json" in request.content_type.lower() or "json" in accept.lower():
+            response.content_type = "application/json; charset=utf-8"
+            return to_json(grouped_routes)
 
-    return to_html(grouped_routes)
+        return to_html(grouped_routes)
+
+    return root
 
 
 @route("/static/<fn>")
@@ -376,26 +390,9 @@ def main():
     )
 
 
-@route("/sources/hist")
-def test(something, something_else):
-    """
-    Here is docstring and so on.
-    """
-    pass
 
-@route("/sources/hist/xe")
-def test(something, something_else):
-    """
-    Here is docstring and so on.
-    """
-    pass
 
-@route("/sources/xex")
-def test2(something, something_else):
-    """
-    Another docstring
-    """
-    pass
+
 
 
 # Main program ================================================================
