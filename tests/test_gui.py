@@ -23,7 +23,6 @@ from bottle_gui2 import bottle_gui
 
 # Variables ==================================================================
 ADDR = "127.0.0.1"
-# PORT = 8000
 PORT = random.randint(10000, 65525)
 URL = 'http://%s:%s%s' % (ADDR, PORT, "/")
 SERV = None
@@ -85,4 +84,63 @@ def test_html_output():
 
 
 def test_json_output():
-    pass
+    res = requests.get(URL, headers={'Accept': 'text/json'})
+
+    assert res.json() == [
+        {
+            u'/': [
+                {
+                    u'args': [],
+                    u'docstring': u'Handle requests to root of the project.',
+                    u'path': u'/',
+                    u'mdocstring': None,
+                    u'module_name': u'bottle_gui2',
+                    u'method': u'GET'
+                }
+            ]
+        },
+        {
+            u'/sources/hist': [
+                {
+                    u'args': [u'something', u'something_else'],
+                    u'docstring': u'Here is hist/xe docstring and so on.',
+                    u'path': u'/sources/hist/xe',
+                    u'mdocstring': u'Hist module level docstring.',
+                    u'module_name': u'services.hist',
+                    u'method': u'GET'
+                },
+                {
+                    u'args': [u'something', u'something_else'],
+                    u'docstring': u'Here is hist docstring and so on.',
+                    u'path': u'/sources/hist',
+                    u'mdocstring': u'Hist module level docstring.',
+                    u'module_name': u'services.hist',
+                    u'method': u'GET'
+                }
+            ]
+        },
+        {
+            u'/bottle_gui_static/': [
+                {
+                    u'args': [u'fn'],
+                    u'docstring': u'Serve static files.',
+                    u'path': u'/bottle_gui_static/',
+                    u'mdocstring': None,
+                    u'module_name': u'bottle_gui2',
+                    u'method': u'GET'
+                }
+            ]
+        },
+        {
+            u'/sources/xex': [
+                {
+                    u'args': [u'something', u'something_else'],
+                    u'docstring': u'Another docstring',
+                    u'path': u'/sources/xex',
+                    u'mdocstring': u'Xex module docstring.',
+                    u'module_name': u'services.xex',
+                    u'method': u'GET'
+                }
+            ]
+        }
+    ]
