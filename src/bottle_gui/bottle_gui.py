@@ -9,7 +9,7 @@ import os.path
 from string import Template
 
 import bottle
-from bottle import route, run, static_file, request, response
+from bottle import route, static_file, request, response
 import inspect
 
 from components.napoleon2html import napoleon_to_html
