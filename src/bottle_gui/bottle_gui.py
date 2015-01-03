@@ -5,12 +5,12 @@
 #
 # Imports =====================================================================
 import json
+import inspect
 import os.path
 from string import Template
 
 import bottle
 from bottle import route, static_file, request, response
-import inspect
 
 from napoleon2html import napoleon_to_html
 
@@ -214,7 +214,7 @@ class RouteGroup(object):
             dict: {path: [routes]}
 
         See Also:
-            RouteInfo.to_dict
+            :meth:`RouteInfo.to_dict`
         """
         return {
             self.get_path(): map(lambda x: x.to_dict(), self.routes)
