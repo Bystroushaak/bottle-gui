@@ -2,4 +2,4 @@ include CHANGES.rst README.rst LICENSE.txt
 recursive-include tests *
 recursive-include docs *
 recursive-exclude docs/_build *
-recursive-exclude unittests/__pycache__ *
+recursive-exclude tests/__pycache__ *
