@@ -12,7 +12,7 @@ import bottle
 from bottle import route, static_file, request, response
 import inspect
 
-from components.napoleon2html import napoleon_to_html
+from napoleon2html import napoleon_to_html
 
 
 # Variables ===================================================================

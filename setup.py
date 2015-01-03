@@ -44,8 +44,9 @@ setup(
     include_package_data=True,
     zip_safe=True,
     install_requires=[
-        'setuptools',
+        "setuptools",
         "bottle",
+        "napoleon2html"
     ],
     extras_require={
         "test": [
