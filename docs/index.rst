@@ -28,7 +28,11 @@ Now, all you have to do is to run your server and go to address of the service,
 where you should see something like:
 
 
-TODO: screenshot
+.. image:: _images/screen.png
+    :width: 600px
+
+Note, that this is only for test, in real scenario, there would be more
+URL's and their comments would be meaningful.
 
 
 API documentation
