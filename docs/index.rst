@@ -19,10 +19,16 @@ And the code::
 
     gui = bottle_gui()
 
-And thats it!
+Thats it! This will add the bottle gui service to your bottle namespace.
 
 The :func:`bottle_gui` takes one optional parameter, which specifies where the
 GUI service should run. By default, it will run at ``/``.
+
+Now, all you have to do is to run your server and go to address of the service,
+where you should see something like:
+
+
+TODO: screenshot
 
 
 API documentation
@@ -31,7 +37,7 @@ API documentation
 .. toctree::
     :maxdepth: 2
 
-    api/modules
+    api/bottle_gui
 
 
 Testing
@@ -43,7 +49,6 @@ the tests from the root of the package using following command::
 
 Which will output something like::
 
-    $ py.test --pdb
     ============================= test session starts ==============================
     platform linux2 -- Python 2.7.6 -- py-1.4.23 -- pytest-2.6.0
     collected 2 items 
