@@ -202,7 +202,10 @@ class RouteGroup(object):
             name=self.get_path(),
             description=self.get_docstring(),
             rows="\n".join(
-                map(lambda x: x.to_html(), self.routes)
+                map(
+                    lambda x: x.to_html(),
+                    sorted(self.routes, key=lambda x: x.path)
+                )
             )
         )
 
@@ -317,7 +320,10 @@ def to_html(grouped_routes):
     """
     return Template(INDEX_TEMPLATE).substitute(
         tables="\n".join(
-            map(lambda x: x.to_html(), grouped_routes)
+            map(
+                lambda x: x.to_html(),
+                sorted(grouped_routes, key=lambda x: x.get_path())
+            )
         )
     )
 
