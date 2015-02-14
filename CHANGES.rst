@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.2.1
+-----
+    - Small package metadata improvements.
+
 0.2.0
 -----
     - Added support for blacklist (.BLACKLIST property). See tests for details.

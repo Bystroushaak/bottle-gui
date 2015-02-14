@@ -6,3 +6,4 @@ recursive-include src/bottle_gui/static *
 
 recursive-exclude docs/_build *
 recursive-exclude tests/__pycache__ *
+recursive-exclude tests/services *.pyc
