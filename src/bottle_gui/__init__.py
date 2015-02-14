@@ -4,4 +4,4 @@
 # Interpreter version: python 2.7
 #
 # Imports =====================================================================
-from bottle_gui import bottle_gui
+from bottle_gui import gui

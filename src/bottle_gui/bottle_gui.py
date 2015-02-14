@@ -44,6 +44,7 @@ INDEX_TEMPLATE = read_template("index.html")  #: static/templates/index.html
 TABLE_TEMPLATE = read_template("table.html")  #: static/templates/table.html
 ROW_TEMPLATE   = read_template("row.html")  #: static/templates/row.html
 DESCR_TEMPLATE = read_template("descr.html")  #: static/templates/descr.html
+BLACKLIST = ["/", "/bottle_gui_static/"]
 
 
 # Classes =====================================================================
@@ -350,7 +351,7 @@ def to_json(grouped_routes):
     )
 
 
-def bottle_gui(path="/"):
+def gui(path="/"):
     """
     Run `bootle-gui` at given `path`.
 
@@ -367,7 +368,9 @@ def bottle_gui(path="/"):
         """
         Handle requests to root of the project.
         """
-        grouped_routes = group_routes(list_routes())
+        grouped_routes = group_routes(
+            filter(lambda x: x.path not in BLACKLIST, list_routes())
+        )
 
         accept = request.headers.get("Accept", "")
         if "json" in request.content_type.lower() or "json" in accept.lower():

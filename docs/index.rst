@@ -15,14 +15,14 @@ and import one function::
 
 And the code::
 
-    from bottle_gui import bottle_gui
+    import bottle_gui
 
-    gui = bottle_gui()
+    gui = bottle_gui.gui()
 
 Thats it! This will add the bottle gui service to your bottle namespace.
 
-The :func:`bottle_gui` takes one optional parameter, which specifies where the
-GUI service should run. By default, it will run at ``/``.
+The :func:`gui` takes one optional parameter, which specifies where the GUI
+service should run. By default, it will run at ``/``.
 
 Now, all you have to do is to run your server and go to address of the service,
 where you should see something like:

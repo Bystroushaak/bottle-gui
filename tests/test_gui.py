@@ -15,10 +15,10 @@ import pytest
 import requests
 from bottle import run
 
-import services
+import services  # local services for test purposes
 
-sys.path.append('src')
-from bottle_gui import bottle_gui
+sys.path.insert(0, 'src')
+import bottle_gui
 
 
 # Variables ==================================================================
@@ -30,7 +30,8 @@ SERV = None
 
 # Functions & classes ========================================================
 def run_server():
-    bg = bottle_gui()
+    bottle_gui.bottle_gui.BLACKLIST = []
+    bg = bottle_gui.gui()
     run(
         host=ADDR,
         port=PORT,
